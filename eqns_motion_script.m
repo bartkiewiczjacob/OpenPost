@@ -37,7 +37,7 @@ sec = 12*3600; %Launch Time [sec since midnight grenwich time]
 %rail
 lr = 75; %Launch Rail Length [ft]
 mu = 0.42; %Launch Rail/Launch Lug Coefficient of Friction
-len = 27;
+len = 27; %Full Rocket Length [ft]
 %heating data
 cp = 0.217; %Analysis Material Specific Heat [BTU/lb-F]
 material_density = 168.55; %Analysis MAterial Density [lb/ft^3]
