@@ -1,7 +1,6 @@
 clc;
 clear;
 % retrieve aerodynamic data
-load('aerodata.mat');
 air_data = load('air_data.csv');
 warning('off', 'all');
 %Average Massless Inertia Tensor % compute the average inertia tensor of
