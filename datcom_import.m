@@ -234,7 +234,7 @@ data = datcom_data;
 
 % merging all case data into a single structure
 for i = flip(1:length(data)-1)
-    data{end}.alpha = [data{i}.alpha; data{end}.alpha];
+    data{end}.alpha = [data{i}.alpha data{end}.alpha];
     data{end}.cd = [data{i}.cd; data{end}.cd];
     data{end}.cl = [data{i}.cl; data{end}.cl];
     data{end}.cm = [data{i}.cm; data{end}.cm];
