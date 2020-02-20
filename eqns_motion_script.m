@@ -1,17 +1,19 @@
-clc;
-clear;
 % retrieve aerodynamic data
+load('aerodata.mat');
 air_data = load('air_data.csv');
 warning('off', 'all');
-%Average Massless Inertia Tensor % compute the average inertia tensor of
+%Average Mass Normalized Inertia Tensor % compute the average inertia tensor of
                                  % the rocket and divide each term by the mass
 I = [360, 0, 0; 0, 4880, 0; 0, 0, 4880]./973.065; %[ft^2]
 
 %Propulsion 
-T = 1000;%5100; %Design Thrust [lbs]
-burn_time = 10;%(200000)/T; %Engine Burn Time [s]
-m_wet = 200;%1841.8; %Gross Liftoff Weight [lbs]
-mdot = 10;%36.18; %Engine Mass Flow Rate [lbs/s]
+%For constant Thrust testing enter Thrust.time = [0, 1], Thrust.thrust =
+%[Thrust, Thrust]
+Thrust.time = [0, 1]; %5100 Engine Test Time Array [s]
+Thrust.thrust = [900, 900]; %Engine Test Thrust Values [lbf]
+burn_time = 10.231;%(200000)/T; %Engine Burn Time [s]
+m_wet = 60.3*2.20462;%1841.8; %Gross Liftoff Weight [lbs]
+mdot = 20/10.231*2.20462; %Engine Mass Flow Rate [lbs/s]
 m_dry = m_wet - mdot*burn_time; %Burnout Mass [lbs]
 %Engine 
 De = 8.4932; %Engine Exit Diameter [in]
@@ -22,9 +24,9 @@ Pe = 10; %Engine Exit Pressure [psi]
 phi0 = 0; %Initial Roll Angle [rad] % if orientation relative to Earth is 
                                     % required set this as the angle 
                                     % between a chosen reference axis and North 
-theta0 = 0.7854; %Initial Pitch Angle [rad] % down/up range
+theta0 = 0; %Initial Pitch Angle [rad] % down/up range
 psi0 = 0; %Initial Yaw Angle [rad] % cross range 
-h0 = 0;%4595; %Initial Altitude [ft]
+h0 = 4595; %Initial Altitude [ft]
 u0 = 0.1; %Initial Upwards Velocity [ft/s]
 v0 = 0.0; %Initial Northern Velocity [ft/s]
 w0 = 0.0; %Initial Western Velocity [ft/s]
@@ -48,7 +50,8 @@ tc = 0.00; %Insulation Thickness [in]
 k_he = 0.0867; %Helium Thermal Conductivity [BTU/h-ft-F]
 T_he = -99.67; %Helium Temperature [F]
 d = 16; %Tank Diameter [in]
-
+sim('eqns_motion_mdl.slx'); %Runs Simulation
+plot(trajectory) %Plots trajectory
 
 % fileID = fopen('sim.a', 'w');
 % fprintf(fileID, 'stk.v.5.0\nBEGIN Attitude\nScenarioEpoch           1 Dec 2019 17:00:00.000\nBlockingFactor          20\nInterpolationOrder      1\nCentralBody             Earth\nCoordinateAxes        	AWB    NorthWestUp		 LaunchVehicle/LaunchVehicle1\nSequence                321\nAttitudeTimeQuaternions\n');
