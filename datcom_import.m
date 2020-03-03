@@ -3,7 +3,7 @@ function aerostatdyn = datcom_import()
 % file. Associated for005 input file must have been generated using the
 % datcom_input_file() function to guarantee all data is scraped correctly.
 
-% TODO - Still need to 
+% TODO - Still need to - add reference area and cbar and blref
 
 % Setting up datcom data structure
 % Data setup from control cards
@@ -13,7 +13,7 @@ aerostatdyn.alpha  = [];  % angles of attack
 aerostatdyn.nmach  = 0;   % # of mach numbers
 aerostatdyn.nalt   = 0;   % # of alts
 aerostatdyn.nalpha = 0;   % # of alphas
-aerostatdyn.rnnub  = 0;   % Reynolds number
+aerostatdyn.rnnub  = [];  % Reynolds number
 aerostatdyn.sref   = 0;   % referance area
 aerostatdyn.cbar   = 0;   % reference fin chord length
 aerostatdyn.blref  = 0;   % reference length
@@ -21,8 +21,8 @@ aerostatdyn.dim    = 'm';   % units for lengh
 aerostatdyn.deriv  = 'deg'; % derivative slope unit
 aerostatdyn.stmach = 0;   % subsonic-transonic transition mach #
 aerostatdyn.tsmach = 0;   % transonic supersonic transition mach #
-aerostatdyn.damp   = 0;   % datcom damping coeff option
-aerostatdyn.build  = 0;   % datcom sub-configuration print option
+aerostatdyn.damp   = true;   % datcom damping coeff option
+aerostatdyn.build  = 1;   % datcom sub-configuration print option
 aerostatdyn.version= 1976;  % USAF datcom version
 aerostatdyn.mcrit  = 0;   % critical Mach number
 aerostatdyn.xcg    = 0;   % axial cg from nose cone tip
@@ -55,15 +55,35 @@ aerostatdyn.cyp  = [];  % sideslip wrt roll-rate
 aerostatdyn.cnp  = [];  % yawing moment wrt roll rate
 aerostatdyn.cnr  = [];  % yawing moment wrt yaw rate
 aerostatdyn.clr  = [];  % rolling moment wrt yaw rate
-% Defaults
-aerostatdyn.grnd = 0;
+% TODO - scrape or set default
+aerostatdyn.grnd = false;
 aerostatdyn.grndht = [];
-aerostatdyn.pwr = 0;
-aerostatdyn.lb = 0;
+aerostatdyn.pwr = false;
+aerostatdyn.lb = false;
 aerostatdyn.delta = [];
 aerostatdyn.delatl = [];
 aerostatdyn.deltar = [];
 aerostatdyn.ngh = 0;
+aerostatdyn.lb = false;
+aerostatdyn.trim = false;
+aerostatdyn.trim = false;
+aerostatdyn.highsym = false;
+aerostatdyn.highasy = false;
+aerostatdyn.highcon = false;
+aerostatdyn.tjet = false;
+aerostatdyn.hypeff = false;
+aerostatdyn.save = true;
+aerostatdyn.loop = 2;
+aerostatdyn.stype = [];
+aerostatdyn.hypers = false;
+aerostatdyn.save = true;
+aerostatdyn.build = 1;
+aerostatdyn.hsspn = 0;
+aerostatdyn.part = false;
+aerostatdyn.wsspn = 0;
+aerostatdyn.ndelta = 0;
+aerostatdyn.damp = true;
+aerostatdyn.case = "";
 
 % Line matching strings
 match_CASE = " CASEID ";
