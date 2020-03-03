@@ -3,6 +3,8 @@ function aerostatdyn = datcom_import()
 % file. Associated for005 input file must have been generated using the
 % datcom_input_file() function to guarantee all data is scraped correctly.
 
+% TODO - Still need to 
+
 % Setting up datcom data structure
 % Data setup from control cards
 aerostatdyn.mach   = [];  % input mach numbers
@@ -58,6 +60,10 @@ aerostatdyn.grnd = 0;
 aerostatdyn.grndht = [];
 aerostatdyn.pwr = 0;
 aerostatdyn.lb = 0;
+aerostatdyn.delta = [];
+aerostatdyn.delatl = [];
+aerostatdyn.deltar = [];
+aerostatdyn.ngh = 0;
 
 % Line matching strings
 match_CASE = " CASEID ";
