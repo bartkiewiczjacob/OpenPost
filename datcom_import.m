@@ -53,6 +53,11 @@ aerostatdyn.cyp  = [];  % sideslip wrt roll-rate
 aerostatdyn.cnp  = [];  % yawing moment wrt roll rate
 aerostatdyn.cnr  = [];  % yawing moment wrt yaw rate
 aerostatdyn.clr  = [];  % rolling moment wrt yaw rate
+% Defaults
+aerostatdyn.grnd = 0;
+aerostatdyn.grndht = [];
+aerostatdyn.pwr = 0;
+aerostatdyn.lb = 0;
 
 % Line matching strings
 match_CASE = " CASEID ";
