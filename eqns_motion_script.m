@@ -1,5 +1,4 @@
 % retrieve aerodynamic data
-load('aerodata.mat');
 air_data = load('air_data.csv');
 warning('off', 'all');
 %Average Mass Normalized Inertia Tensor % compute the average inertia tensor of
