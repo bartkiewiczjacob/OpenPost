@@ -4,7 +4,7 @@
 vehicle.L    = 27;    % Rocket length [ft]
 vehicle.D    = 16/12; % Rocket diameter [ft]
 vehicle.NC_L = 4;     % Nose cone length [ft]
-vehicle.xcg  = 23;  % Axial cg from nosecone tip [ft]
+vehicle.xcg  = 18.3;  % Axial cg from nosecone tip [ft]
 vehicle.zcg  = 0;     % Radial cg [ft]
 
 vehicle.rougfc = .00025;  % surface roughness [ft]
@@ -19,9 +19,6 @@ vehicle.fin_num    = 4;      % Number of fins
 % vehicle.unit = 'M';
 vehicle.unit = "FT";  % Supplied length dimension
 
-M = .5;
-Alpha = [0 1 2];
 datcom_input_file(vehicle);
 datcom_run();
 aero_statdyn = datcom_import();
-as2 = aero_statdyn;

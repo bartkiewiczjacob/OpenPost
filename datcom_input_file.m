@@ -3,7 +3,12 @@ function [exitflag] = datcom_input_file(vehicle, M, Alpha, ALT, view)
 % an input file for use in the USAF Digital DATCOM
 % 
 % TODO
-% -Switch to rocket file from hardcoded variables
+% - Switch to rocket file from hardcoded variables - COMPLETE
+% - Support metric dimensions
+% - OML definition
+% - Better nose cone definition
+% - Boat tail
+% - 3,4,5 fin configurations
 % 
 % INPUTS
 % - L:
@@ -35,7 +40,7 @@ if nargin < 1
 end
 if nargin < 2
     % Default Mach Number List
-    M = [.01:.1:.6 1.4:.4:5.0];
+    M = [.01 .1:.1:.6 1.4:.4:5.0];
 end
 if nargin < 3
     % Default Alpha List
@@ -49,12 +54,15 @@ if nargout < 5
     % View rocket profile
     view = 0;
 end
+M(M==0) = .01;
 
+filename = 'for005';
 exitflag = 0;
 
 %% LAUNCH VEHICLE PARAMETERS
 
-XCG = 0; ZCG = 0; filename = 'for005';
+XCG = vehicle.xcg;
+ZCG = vehicle.zcg;
 % Body Geometry
 L    = vehicle.L;
 D    = vehicle.D;
@@ -120,10 +128,7 @@ fprintf(fileID,'CASEID PUB_ROCKET\n');
 NMACH = length(M);               % Mach Numbers
 NALPHA = min(length(Alpha),17);  % Angle of Attack [deg]
 NALT = length(ALT);              % Altitude [ft]
-LOOP = 2.0;    % Keep at 2.0
-
-% Loop
-fprintf(fileID,' $FLTCON LOOP=%.1f$\n',LOOP);   % Mach Number Input
+LOOP = 2.0;    % Keep at 2.0   
 
 % Mach Numbers
 fprintf(fileID,' $FLTCON NMACH=%.1f, MACH(1)=',NMACH);   % Mach Number Input
@@ -162,6 +167,9 @@ end
 % Altitudes
 fprintf(fileID,' $FLTCON NALT=1.0, ALT(1)=%.2f$\n',ALT);   % Angle of Attack Input
 
+% Loop and transition Mach numbers
+% Mach Number Input
+fprintf(fileID,' $FLTCON STMACH=.99,TSMACH=1.01,LOOP=%.1f$\n',LOOP);
 
 %% SYNTHESIS (SYNTHS)
 % Wing (HTAIL) Parameters
@@ -190,7 +198,7 @@ BLREF = fin_height; % Lateral Reference Length
 fprintf(fileID,' $OPTINS SREF=%.3f,CBARR=%.1f,BLREF=%.1f,ROUGFC=%.6f$\n',sref,CBARR,BLREF,ROUGFC);
 
 %% BODY GEOMETRY
-fprintf(fileID,' $BODY NX=3.0,BNOSE=1.0,BTAIL=2.0,BLN=%.2f,BLA=1.0,\n',L_NC);
+fprintf(fileID,' $BODY NX=3.0,BNOSE=1.0,BLN=%.2f,\n',L_NC);
 fprintf(fileID,'  X(1)=0.0,%.2f,%.2f,\n',L_NC,L);
 fprintf(fileID,'  R(1)=0.0,%.2f,%.2f,\n',D/2,D/2);
 fprintf(fileID,'  METHOD=2.0$\n'); % 0-180deg Method for Body Calcs

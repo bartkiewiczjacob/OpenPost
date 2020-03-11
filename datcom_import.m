@@ -3,7 +3,12 @@ function aerostatdyn = datcom_import()
 % file. Associated for005 input file must have been generated using the
 % datcom_input_file() function to guarantee all data is scraped correctly.
 
-% TODO - Still need to - add reference area and cbar and blref
+% TODO
+% - still need add reference area and cbar and blref - COMPLETE
+% - pull critical mach number
+% - parse vehicle info* - can just be done internally 
+% - remove unused variables
+% - preallocate aero coefficient during runtime to improve speed
 
 % Setting up datcom data structure
 % Data setup from control cards
@@ -17,22 +22,46 @@ aerostatdyn.rnnub  = [];  % Reynolds number
 aerostatdyn.sref   = 0;   % referance area
 aerostatdyn.cbar   = 0;   % reference fin chord length
 aerostatdyn.blref  = 0;   % reference length
-aerostatdyn.dim    = 'm';   % units for lengh
+aerostatdyn.dim    = 'ft';  % units for lengh
 aerostatdyn.deriv  = 'deg'; % derivative slope unit
 aerostatdyn.stmach = 0;   % subsonic-transonic transition mach #
 aerostatdyn.tsmach = 0;   % transonic supersonic transition mach #
-aerostatdyn.damp   = true;   % datcom damping coeff option
-aerostatdyn.build  = 1;   % datcom sub-configuration print option
+aerostatdyn.damp   = false; % datcom damping coeff option
+aerostatdyn.build  = 0;   % datcom sub-configuration print option
 aerostatdyn.version= 1976;  % USAF datcom version
 aerostatdyn.mcrit  = 0;   % critical Mach number
 aerostatdyn.xcg    = 0;   % axial cg from nose cone tip
 aerostatdyn.zcg    = 0;   % radial cg
+aerostatdyn.save = false; % save case data flag
 % Vehicle configuration
 aerostatdyn.config.body  = 0;  % vehicle body
 aerostatdyn.config.wing  = 0;  % vehicle wing
 aerostatdyn.config.htail = 0;  % vehicle horizontal tail
 aerostatdyn.config.vtail = 0;  % vehicle vertical tail
 aerostatdyn.config.vfin  = 0;  % vehilce ventral fin
+% Defaults (Dont change on function call) 
+aerostatdyn.case    = char(); % case name
+aerostatdyn.rnnub   = [];     % Reynolds number 
+aerostatdyn.hypers  = false;  % 
+aerostatdyn.stype   = [];     % 
+aerostatdyn.trim    = false;  % 
+aerostatdyn.part    = false;  % 
+aerostatdyn.highsym = false;  % 
+aerostatdyn.highasy = false;  %
+aerostatdyn.highcon = false;  %
+aerostatdyn.tjet    = false;  %
+aerostatdyn.hypeff  = false;  %
+aerostatdyn.lb      = false;  %
+aerostatdyn.pwr     = false;  %
+aerostatdyn.wsspn   = 1;      %
+aerostatdyn.hsspn   = 1;      %
+aerostatdyn.ndelta  = 0;      %
+aerostatdyn.delta   = [];     %
+aerostatdyn.deltal  = [];     %
+aerostatdyn.deltar  = [];     %
+aerostatdyn.ngh     = 0;      %
+aerostatdyn.grnd    = false;  %
+aerostatdyn.grndht  = [];     %
 % Static stability data
 aerostatdyn.cd   = [];  % drag coefficient
 aerostatdyn.cl   = [];  % lift coefficient
@@ -55,35 +84,6 @@ aerostatdyn.cyp  = [];  % sideslip wrt roll-rate
 aerostatdyn.cnp  = [];  % yawing moment wrt roll rate
 aerostatdyn.cnr  = [];  % yawing moment wrt yaw rate
 aerostatdyn.clr  = [];  % rolling moment wrt yaw rate
-% TODO - scrape or set default
-aerostatdyn.grnd = false;
-aerostatdyn.grndht = [];
-aerostatdyn.pwr = false;
-aerostatdyn.lb = false;
-aerostatdyn.delta = [];
-aerostatdyn.delatl = [];
-aerostatdyn.deltar = [];
-aerostatdyn.ngh = 0;
-aerostatdyn.lb = false;
-aerostatdyn.trim = false;
-aerostatdyn.trim = false;
-aerostatdyn.highsym = false;
-aerostatdyn.highasy = false;
-aerostatdyn.highcon = false;
-aerostatdyn.tjet = false;
-aerostatdyn.hypeff = false;
-aerostatdyn.save = true;
-aerostatdyn.loop = 2;
-aerostatdyn.stype = [];
-aerostatdyn.hypers = false;
-aerostatdyn.save = true;
-aerostatdyn.build = 1;
-aerostatdyn.hsspn = 0;
-aerostatdyn.part = false;
-aerostatdyn.wsspn = 0;
-aerostatdyn.ndelta = 0;
-aerostatdyn.damp = true;
-aerostatdyn.case = "";
 
 % Line matching strings
 match_CASE = " CASEID ";
@@ -93,14 +93,15 @@ match_OPTINS = "  $OPTINS";
 match_BODY = "  $BODY";
 match_strt = "1          THE FOLLOWING IS A LIST OF ALL";
 match_static = "ALPHA     CD       CL";
-match_static_end = "1                               AUTOMATED STABILITY AND CONTROL METHODS PER APRIL 1976 VERSION OF DATCOM";
-match_dynamic = "ALPHA       CLQ          CMQ           CLAD         CMAD         CLP          CYP          CNP          CNR          CLR";
+match_static_end = "1                               AUTOMATED STABILITY";
+match_dynamic = "ALPHA       CLQ          CMQ           CLAD";
 match_dynamic_end = "0*** NDM PRINTED WHEN NO DATCOM METHODS EXIST";
 
 % 1=control card, 2=flight data
 search_flag = 1;
 mach_count = 1;
 alpha_count = 1;
+subsonic = true;
 fid = fopen('for006.dat');
 tline = fgetl(fid);
 while ischar(tline)
@@ -146,11 +147,39 @@ while ischar(tline)
                     end
                 % Synths (SYNTHS)
                 elseif startsWith(tline, match_SYNTHS)
-                    
+                    aerostatdyn.xcg = sscanf(extractAfter(tline, "XCG="), "%f");
+                    aerostatdyn.zcg = sscanf(extractAfter(tline, "ZCG="), "%f");
                     tline = fgetl(fid);
                 % Optional params (OPTINS)
                 elseif startsWith(tline, match_OPTINS)
-                    
+                    aerostatdyn.sref = sscanf(extractAfter(tline, "SREF="), "%f");
+                    aerostatdyn.cbar = sscanf(extractAfter(tline, "CBARR="), "%f");
+                    aerostatdyn.blref = sscanf(extractAfter(tline, "BLREF="), "%f");
+                    aerostatdyn.rougfc = sscanf(extractAfter(tline, "ROUGFC"), "%f");
+                    tline = fgetl(fid);
+                % Body params (BODY)
+                elseif startsWith(tline, match_BODY)
+                    % TODO: PULL BODY DATA HERE
+                    tline = fgetl(fid);
+                % Damp control card input
+                elseif startsWith(tline, " DAMP")
+                    aerostatdyn.damp = true;
+                    tline = fgetl(fid);
+                % Build control card input
+                elseif startsWith(tline, " BUILD")
+                    aerostatdyn.build = 1;
+                    tline = fgetl(fid);
+                % Save control card input
+                elseif startsWith(tline, " SAVE")
+                    aerostatdyn.save = true;
+                    tline = fgetl(fid);
+                elseif startsWith(tline, " DIM")
+                    dim = extractAfter(tline, " DIM ");
+                    if dim == "FT"
+                        aerostatdyn.dim = "ft";
+                    elseif dim == "M"
+                        aerostatdyn.dim = "m";
+                    end
                     tline = fgetl(fid);
                 else
                     tline = fgetl(fid);
@@ -188,9 +217,21 @@ while ischar(tline)
 
     elseif search_flag == 2
     % Parsing flight coefficient data
-        
-        % Reading through static coefficients
-        if contains(tline, match_static)
+    
+        % Getting Mach regime
+        if startsWith(tline, " NUMBER")
+            fgetl(fid); tline = fgetl(fid);
+            line = split(tline);
+            mach = str2double(line(2));
+            
+            if mach > 1
+                subsonic = false;
+            else
+                subsonic = true;
+            end
+        % Reading through static coefficients        
+        elseif contains(tline, match_static)
+            % First pass
             fgetl(fid); tline = fgetl(fid);
             stat_coeffs = strsplit(tline, ' ');
             cd = str2double(stat_coeffs{3});
@@ -203,11 +244,12 @@ while ischar(tline)
             cma = str2double(stat_coeffs{10});
             cyb = str2double(stat_coeffs{11});
             cnb = str2double(stat_coeffs{12});
-            clb = str2double(stat_coeffs{13});
+            % clb = str2double(stat_coeffs{13});
             
             alpha_temp = 0;
             tline = fgetl(fid);
             while ~startsWith(tline, match_static_end)
+                % Subsequent passes
                 stat_coeffs = strsplit(tline, ' ');
                 cd = [cd; str2double(stat_coeffs{3})];
                 cl = [cl; str2double(stat_coeffs{4})];
@@ -216,8 +258,14 @@ while ischar(tline)
                 ca = [ca; str2double(stat_coeffs{7})];
                 xcp = [xcp; str2double(stat_coeffs{8})];
                 cla = [cla; str2double(stat_coeffs{9})];
-                clb = [clb; str2double(stat_coeffs{10})];
-                cyb = [cyb; NaN]; cnb = [cnb; NaN]; cma = [cma; NaN];
+                if subsonic
+                    cma = [cma; str2double(stat_coeffs{10})];
+                    % clb = [clb; str2double(stat_coeffs{11})];
+                else
+                    cma = [cma; NaN];
+                    % clb = [clb; str2double(stat_coeffs{10})];
+                end
+                cyb = [cyb; NaN]; cnb = [cnb; NaN]; 
                 alpha_temp = alpha_temp + 1;
                 tline = fgetl(fid);
             end
@@ -227,17 +275,19 @@ while ischar(tline)
             aerostatdyn.cn(alpha_count:alpha_count+alpha_temp,mach_count) = cn;
             aerostatdyn.ca(alpha_count:alpha_count+alpha_temp,mach_count) = ca;
             aerostatdyn.xcp(alpha_count:alpha_count+alpha_temp,mach_count) = xcp;
+            aerostatdyn.cla(alpha_count:alpha_count+alpha_temp,mach_count) = cla;
             aerostatdyn.cma(alpha_count:alpha_count+alpha_temp,mach_count) = cma;
             aerostatdyn.cyb(alpha_count:alpha_count+alpha_temp,mach_count) = cyb;
             aerostatdyn.cnb(alpha_count:alpha_count+alpha_temp,mach_count) = cnb;
-            aerostatdyn.clb(alpha_count:alpha_count+alpha_temp,mach_count) = clb;
+            % aerostatdyn.clb(alpha_count:alpha_count+alpha_temp,mach_count) = clb;
         % Reading through dynamic coefficients
         elseif contains(tline, match_dynamic)
+            % first pass
             fgetl(fid); tline = fgetl(fid);
             dyn_coeffs = strsplit(tline, ' ');
             clq = str2double(dyn_coeffs{3});
             cmq = str2double(dyn_coeffs{4});
-            clad = str2double(dyn_coeffs{5});
+            % clad = str2double(dyn_coeffs{5});
             cmad = str2double(dyn_coeffs{6});
             clp = str2double(dyn_coeffs{7});
             cyp = str2double(dyn_coeffs{8});
@@ -248,6 +298,7 @@ while ischar(tline)
             alpha_temp = 0;
             tline = fgetl(fid);
             while ~startsWith(tline, match_dynamic_end)
+                % subsequent passes
                 dyn_coeffs = strsplit(tline, ' ');
                 clp = [clp; str2double(dyn_coeffs{3})];
                 cyp = [cyp; str2double(dyn_coeffs{4})];
@@ -255,13 +306,14 @@ while ischar(tline)
                 cnr = [cnr; str2double(dyn_coeffs{6})];
                 clr = [clr; str2double(dyn_coeffs{7})];
                 clq = [clq; NaN]; cmq = [cmq; NaN]; 
-                clad = [clad; NaN]; cmad = [cmad; NaN];
+                % clad = [clad; NaN]; 
+                cmad = [cmad; NaN];
                 alpha_temp = alpha_temp + 1;
                 tline = fgetl(fid);
             end
             aerostatdyn.clq(alpha_count:alpha_count+alpha_temp,mach_count) = clq;
             aerostatdyn.cmq(alpha_count:alpha_count+alpha_temp,mach_count) = cmq;
-            aerostatdyn.clad(alpha_count:alpha_count+alpha_temp,mach_count) = clad;
+            % aerostatdyn.clad(alpha_count:alpha_count+alpha_temp,mach_count) = clad;
             aerostatdyn.cmad(alpha_count:alpha_count+alpha_temp,mach_count) = cmad;
             aerostatdyn.clp(alpha_count:alpha_count+alpha_temp,mach_count) = clp;
             aerostatdyn.cyp(alpha_count:alpha_count+alpha_temp,mach_count) = cyp;
@@ -274,7 +326,8 @@ while ischar(tline)
             continue;
         end
         
-        % Loop back if case is complete
+        % Loop back if case is complete (Move on to the next batch of 
+        % alphas, reset the mach counter)
         if mach_count > length(aerostatdyn.mach)
             mach_count = 1;
             alpha_count = alpha_count + alpha_temp + 1;
@@ -289,7 +342,17 @@ aerostatdyn.nmach = length(aerostatdyn.mach);
 aerostatdyn.mach(1)=0;
 aerostatdyn.alpha(end)=180;
 
-% Replacing all NaN Data
+% Repairing NaN data 
+aerostatdyn.cma = fillmissing(aerostatdyn.cma, 'linear', 'SamplePoints', aerostatdyn.alpha);
+aerostatdyn.clq = fillmissing(aerostatdyn.clq, 'previous');
+aerostatdyn.cmq = fillmissing(aerostatdyn.cmq, 'previous');
+aerostatdyn.clp = fillmissing(aerostatdyn.clp', 'previous')';
+aerostatdyn.cyp = fillmissing(aerostatdyn.cyp', 'previous')';
+aerostatdyn.cnp = fillmissing(aerostatdyn.cnp', 'previous')';
+aerostatdyn.cnr = fillmissing(aerostatdyn.cnr', 'previous')';
+aerostatdyn.clr = fillmissing(aerostatdyn.clr', 'previous')';
+
+% Replacing all NaN data not covered with zeros
 aerostatdyn.cd(isnan(aerostatdyn.cd)) = 0;
 aerostatdyn.cl(isnan(aerostatdyn.cl)) = 0;
 aerostatdyn.cm(isnan(aerostatdyn.cm)) = 0;
@@ -321,8 +384,10 @@ for k = 1:length(aerotab)
     end
 end
 
-% Copying cla data to cyb
-aerostatdyn.cyb = aerostatdyn.cla;
+% Emperical sideslip data from DATCOM does not match nearly 
+% as well as data wrt alpha
+aerostatdyn.cyb = aerostatdyn.cla; % Copying cla data to cyb
+aerostatdyn.cnb = aerostatdyn.cma; % Copying cma data to 
 
 % Flipping and extending data for negative alpha
 aerostatdyn.alpha = [-flip(aerostatdyn.alpha(2:end)) aerostatdyn.alpha];
