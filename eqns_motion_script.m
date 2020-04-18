@@ -1,6 +1,6 @@
 % retrieve aerodynamic data
-air_data = load('air_data.csv');
-warning('off', 'all');
+air_data = load('air_data.csv'); %Do not change
+warning('off', 'all'); %Do not change
 %Average Mass Normalized Inertia Tensor % compute the average inertia tensor of
                                  % the rocket and divide each term by the mass
 I = [360, 0, 0; 0, 4880, 0; 0, 0, 4880]./973.065; %[ft^2]
@@ -10,8 +10,8 @@ I = [360, 0, 0; 0, 4880, 0; 0, 0, 4880]./973.065; %[ft^2]
 %[Thrust, Thrust]
 Thrust.time = [0, 1]; % Engine Test Time Array [s]
 Thrust.thrust = [5000, 5000]; %Engine Test Thrust Values [lbf]
-burn_time = 40;%(200000)/T; %Engine Burn Time [s]
-m_wet = 1404;%1841.8; %Gross Liftoff Weight [lbs]
+burn_time = 40;% %Engine Burn Time [s]
+m_wet = 1404; %Gross Liftoff Weight [lbs]
 mdot = 21.5; %Engine Mass Flow Rate [lbs/s]
 m_dry = m_wet - mdot*burn_time; %Burnout Mass [lbs]
 %Engine 
@@ -100,7 +100,7 @@ end
     
 save_system('eqns_motion_mdl')
 sim('eqns_motion_mdl.slx'); %Runs Simulation
-%plot(trajectory) %Plots trajectory
+%Change Nothing Below This Line
 if visualization
     fileID = fopen('sim.a', 'w');
     fprintf(fileID, 'stk.v.5.0\nBEGIN Attitude\nScenarioEpoch 1 Dec 2019 17:00:00.000\nBlockingFactor 20\nInterpolationOrder 1\nCentralBody Earth\nCoordinateAxes AWB UpWestSouth LaunchVehicle/LaunchVehicle1\nSequence 123\nAttitudeTimeEulerAngles\n');
