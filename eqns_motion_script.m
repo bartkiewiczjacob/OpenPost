@@ -1,3 +1,4 @@
+load_system('eqns_motion_mdl.slx')
 % retrieve aerodynamic data
 air_data = load('air_data.csv'); %Do not change
 warning('off', 'all'); %Do not change
@@ -44,7 +45,7 @@ t = 0.07; %Analysis Material Thickness[in]
 insulation = 0; %Does the material have a protective insulation coating? [Logical]
 kc = 0.20236159384; %Insulation Thermal Conductivity [BTU/h-ft-F]
 tc = 0.00; %Insulation Thickness [in]
-Kl = 1;%0; Is this a liquid conatiner? [logical]
+Kl = 1;%0; Is this a liquid container? [logical]
 Kg = 1;%0; Is this material in contact with internal gases? [logical] 
 k_he = 0.0867; %Tank Contents Thermal Conductivity [BTU/h-ft-F]
 T_he = -99.67; %Tank Contents Temperature [F]
