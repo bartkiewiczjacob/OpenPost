@@ -11,7 +11,7 @@ I = [360, 0, 0; 0, 4880, 0; 0, 0, 4880]./973.065; %[ft^2]
 %[Thrust, Thrust]
 Thrust.time = [0, 1]; % Engine Test Time Array [s]
 Thrust.thrust = [5000, 5000]; %Engine Test Thrust Values [lbf]
-burn_time = 40;% %Engine Burn Time [s]
+burn_time = 40; %Engine Burn Time [s]
 m_wet = 1404; %Gross Liftoff Weight [lbs]
 mdot = 21.5; %Engine Mass Flow Rate [lbs/s]
 m_dry = m_wet - mdot*burn_time; %Burnout Mass [lbs]
@@ -22,12 +22,15 @@ Pe = 10; %Engine Exit Pressure [psi]
 phi0 = 0; %Initial Roll Angle [rad] % if orientation relative to Earth is 
                                     % required set this as the angle 
                                     % between a chosen reference axis and North 
-theta0 = pi/4; %Initial Pitch Angle [rad] % down/up range
+theta0 = 0; %Initial Pitch Angle [rad] % down/up range
 psi0 = 0; %Initial Yaw Angle [rad] % cross range 
 h0 = 4595; %Initial Altitude [ft]
 u0 = 0.1; %Initial Upwards Velocity [ft/s]
 v0 = 0.0; %Initial Northern Velocity [ft/s]
 w0 = 0.0; %Initial Western Velocity [ft/s]
+w1o = 0; %Initial Body X Angular Velocity [rad/s]
+w2o = 0.0; %Initial Body Y Angular Velocity [rad/s]
+w3o = 0.0; %Initial Body Z Angular Velocity [rad/s]
 lat = 32.9861; %Launch Site Latitude [deg]
 lon = -106.9717; %Launch Site Longitude [deg]
 %rail
@@ -73,11 +76,12 @@ wind_read_speed = 0; %Wind speed reading just before launch [ft/s]
 controls = 0; %Do you want to implement your controller? [Logical] (Control logic entered in Simulink)
 allow_rot = 1; %Do you want to allow the vehicle to rotate? [Logical] (Reduces model to 1-DOF)
 visualization = 1; %Do you want to visualize you results in Flight Gear? [Logical] (Must first load FlightGear Scenario)
-stop_on_apogee = 1; %Do you want the simulation to stop when the vehicle reaches apogee? [Logical]
-stop_on_landing = 0; %Do you want the simulation to stop when the vehicle contacts the ground? [Logical]
+stop_on_apogee = 0; %Do you want the simulation to stop when the vehicle reaches apogee? [Logical]
+stop_on_landing = 1; %Do you want the simulation to stop when the vehicle contacts the ground? [Logical]
 aero = 1; %Do you want to include aerodynamic effects? [Logical]
 %Special
-inner_m = [1/2*0.0762^2*13.6*3141.6, 0, 0]; %Angular momentum of interal machinery such as pumps of turbines [kg-m/s^2]
+inner_m = [1/2*0.0762^2*13.6*3141.6, 0, 0]; %Angular momentum of internal machinery such as pumps of turbines [kg-m/s^2]
+%Change nothing below this line
 if thermal
     set_param('eqns_motion_mdl/Aeroheating', 'commented', 'off')
 else
@@ -116,7 +120,8 @@ if visualization
     uiApplication = actxserver('STK11.application');
     uiApplication.Visible = 1;
     root = uiApplication.Personality2;
-    root.LoadScenario('C:\Users\bartk\OneDrive\Desktop\OpenPost\PSR.sc')
+    str = which('PSR.sc');
+    root.LoadScenario(str)
     pause(10)
     root.PlayForward;
 end
