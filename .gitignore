@@ -1,0 +1,12 @@
+# MATLAB Temporary Files #
+##########################
+*.autosave
+*.asv
+slprj/
+sccprj/
+*.slxc
+*.m~
+
+# DATCOM Files #
+################
+*.dat
