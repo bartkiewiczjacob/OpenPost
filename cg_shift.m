@@ -30,7 +30,7 @@ end
 
 %% Updating DATCOM structure
 asd_old = aero_statdyn;  % Old aerodynamic data structure
-c = aero_statdyn.cbarr;  % longitdunal reference length
+c = aero_statdyn.cbar;   % longitdunal reference length
 
 xcg_old = aero_statdyn.xcg;
 
