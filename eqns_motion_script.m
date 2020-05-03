@@ -2,11 +2,20 @@ load_system('eqns_motion_mdl.slx')
 % retrieve aerodynamic data
 air_data = load('air_data.csv'); %Do not change
 warning('off', 'all'); %Do not change
+
+%retrieve aerodynamic data
+vehicle_definition;
+datcom_input_file(vehicle);
+datcom_run();
+aero_statdyn = datcom_import();
+% aero_plotter(aero_statdyn);
+% draw_vehicle(vehicle);
+
 %Average Mass Normalized Inertia Tensor % compute the average inertia tensor of
                                  % the rocket and divide each term by the mass
 I = [360, 0, 0; 0, 4880, 0; 0, 0, 4880]./973.065; %[ft^2]
 
-%Propulsion 
+%Propulsion
 %For constant Thrust testing enter Thrust.time = [0, 1], Thrust.thrust =
 %[Thrust, Thrust]
 Thrust.time = [0, 1]; % Engine Test Time Array [s]
@@ -129,7 +138,4 @@ end
 
 
 
-
-
- 
 
